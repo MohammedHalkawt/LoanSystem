@@ -9,9 +9,11 @@
     <style>
         .excel-cell {
             min-width: 120px;
-            padding: 8px;
-            border: 1px solid #e2e8f0;
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
             text-align: left;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
         }
         .excel-header {
             background-color: #f7fafc;
@@ -64,19 +66,18 @@
 
             <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
                 <div class="overflow-x-auto">
-                    <table id="employee-table" class="min-w-full divide-y divide-gray-200">
+                    <table id="employee-table" class="min-w-full border-collapse">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="excel-cell excel-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th class="excel-cell excel-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th class="excel-cell excel-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                                <th class="excel-cell excel-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                                <th class="excel-cell excel-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary</th>
-                                <th class="excel-cell excel-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hire Date</th>
-                                <th class="excel-cell excel-header px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th class="excel-cell excel-header border px-2 py-1 text-left text-xs font-medium text-gray-700">ID</th>
+                                <th class="excel-cell excel-header border px-2 py-1 text-left text-xs font-medium text-gray-700">Name</th>
+                                <th class="excel-cell excel-header border px-2 py-1 text-left text-xs font-medium text-gray-700">Position</th>
+                                <th class="excel-cell excel-header border px-2 py-1 text-left text-xs font-medium text-gray-700">Department</th>
+                                <th class="excel-cell excel-header border px-2 py-1 text-left text-xs font-medium text-gray-700">Salary</th>
+                                <th class="excel-cell excel-header border px-2 py-1 text-left text-xs font-medium text-gray-700">Hire Date</th>
                             </tr>
                         </thead>
-                        <tbody id="employee-table-body" class="bg-white divide-y divide-gray-200">
+                        <tbody id="employee-table-body" class="bg-white">
                             <!-- Employee data will be inserted here -->
                         </tbody>
                     </table>
@@ -201,22 +202,12 @@
                 const row = document.createElement('tr');
                 row.className = 'excel-row';
                 row.innerHTML = `
-                    <td class="excel-cell px-6 py-4 whitespace-nowrap">${employee.id}</td>
-                    <td class="excel-cell px-6 py-4 whitespace-nowrap">${employee.name}</td>
-                    <td class="excel-cell px-6 py-4 whitespace-nowrap">${employee.position}</td>
-                    <td class="excel-cell px-6 py-4 whitespace-nowrap">${employee.department}</td>
-                    <td class="excel-cell px-6 py-4 whitespace-nowrap">$${employee.salary.toLocaleString()}</td>
-                    <td class="excel-cell px-6 py-4 whitespace-nowrap">${formatDate(employee.hireDate)}</td>
-                    <td class="excel-cell px-6 py-4 whitespace-nowrap">
-                        <div class="flex space-x-2">
-                            <button data-id="${employee.id}" class="edit-btn action-btn bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-1 px-2 rounded">
-                                Edit
-                            </button>
-                            <button data-id="${employee.id}" class="delete-btn action-btn bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1 px-2 rounded">
-                                Delete
-                            </button>
-                        </div>
-                    </td>
+                    <td class="excel-cell border px-2 py-1 whitespace-nowrap" contenteditable="false">${employee.id}</td>
+                    <td class="excel-cell border px-2 py-1 whitespace-nowrap" contenteditable="true" data-field="name">${employee.name}</td>
+                    <td class="excel-cell border px-2 py-1 whitespace-nowrap" contenteditable="true" data-field="position">${employee.position}</td>
+                    <td class="excel-cell border px-2 py-1 whitespace-nowrap" contenteditable="true" data-field="department">${employee.department}</td>
+                    <td class="excel-cell border px-2 py-1 whitespace-nowrap" contenteditable="true" data-field="salary">${employee.salary.toLocaleString()}</td>
+                    <td class="excel-cell border px-2 py-1 whitespace-nowrap" contenteditable="true" data-field="hireDate">${formatDate(employee.hireDate)}</td>
                 `;
                 employeeTableBody.appendChild(row);
             });
