@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,31 +17,24 @@ Route::get('/', function () {
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/logout', function () {
+    session()->flush();
+    return redirect('/login');
+});
+
 /*
 |--------------------------------------------------------------------------
-| Protected Routes
+| Protected Routes (require auth.session)
 |--------------------------------------------------------------------------
 */
 
-Route::get('/dashboard', function () {
+Route::middleware('auth.session')->group(function () {
 
-    if (!session()->has('user_id')) {
-        return redirect('/login');
-    }
+    // Dashboard – shows your Blade view
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
-    return "Welcome " . session('user_name') .
-           " | Role: " . session('user_role') .
-           " | <a href='/logout'>Logout</a>";
-
-});
-
-Route::get('/logout', function () {
-
-    if (!session()->has('user_id')) {
-        return redirect('/login');
-    }
-
-    session()->flush();
-    return redirect('/login');
-
+    // Customer CRUD
+    Route::resource('customers', CustomerController::class);
 });

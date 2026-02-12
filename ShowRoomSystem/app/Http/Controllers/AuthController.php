@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash; // 👈 import Hash facade
 
 class AuthController extends Controller
 {
@@ -11,24 +12,28 @@ class AuthController extends Controller
     {
         return view('login');
     }
-
     public function login(Request $request)
     {
-        $user = User::where('email', $request->email)
-                    ->where('password', $request->password)
-                    ->first();
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
 
-        if (!$user) {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return back()->with('error', 'Invalid credentials');
         }
 
         session([
-            'user_id' => $user->id,
+            'user_id'   => $user->id,
             'user_role' => $user->role,
-            'user_name' => $user->name
+            'user_name' => $user->name,
+            'user_email' => $user->email,
+            'user_created_at' => $user->created_at->format('M d, Y'),
         ]);
 
-        return redirect('/dashboard');
+        return redirect('/dashboard')->with('success', 'Logged in successfully!');
     }
 
     public function logout()
