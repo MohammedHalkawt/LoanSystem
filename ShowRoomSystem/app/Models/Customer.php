@@ -14,4 +14,14 @@ class Customer extends Model
         'phone_number',
         'folder_path',
     ];
+    protected $appends = ['google_drive_link'];
+
+
+    public function getGoogleDriveLinkAttribute()
+    {
+        if (!$this->folder_path) {
+            return null;
+        }
+        return "https://drive.google.com/drive/folders/{$this->folder_path}";
+    }
 }

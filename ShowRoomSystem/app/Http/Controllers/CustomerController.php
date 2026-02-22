@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use App\Services\GoogleDriveService;
 
 class CustomerController extends Controller
 {
@@ -46,23 +47,38 @@ class CustomerController extends Controller
         return view('customers.create');
     }
 
-    /**
-     * Store a newly created customer.
-     */
-    public function store(Request $request)
+    public function store(Request $request, GoogleDriveService $driveService)
     {
         $this->authorizeEditor();
 
         $request->validate([
             'name'          => 'required|string|max:255',
             'phone_number'  => 'nullable|string|max:20',
-            'folder_path'   => 'nullable|string|max:255',
+            // folder_path is no longer manually entered
         ]);
 
-        Customer::create($request->only('name', 'phone_number', 'folder_path'));
+        // Create customer without folder_path initially
+        $customer = Customer::create([
+            'name'         => $request->name,
+            'phone_number' => $request->phone_number,
+            // folder_path will be set after Drive folder creation
+        ]);
+
+        // Create Google Drive folder
+        $folderName = $this->sanitizeFolderName($customer->name); // e.g., remove special chars
+        $folderId = $driveService->createFolder($folderName);
+
+        if ($folderId) {
+            // Save folder ID in database
+            $customer->folder_path = $folderId; // we store the folder ID, not the path
+            $customer->save();
+        } else {
+            // Optionally log failure, but don't stop the process
+            \Log::warning("Google Drive folder creation failed for customer {$customer->id}");
+        }
 
         return redirect()->route('customers.index')
-                         ->with('success', 'Customer created successfully.');
+                        ->with('success', 'Customer created successfully.');
     }
 
     /**
@@ -111,5 +127,11 @@ class CustomerController extends Controller
 
         return redirect()->route('customers.index')
                          ->with('success', 'Customer deleted successfully.');
+    }
+   
+    private function sanitizeFolderName($name)
+    {
+        // Remove characters that are problematic in Drive folder names
+        return preg_replace('/[^\w\s-]/', '', $name);
     }
 }
