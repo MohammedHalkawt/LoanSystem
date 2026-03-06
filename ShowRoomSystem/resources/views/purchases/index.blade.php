@@ -48,13 +48,13 @@
                         <td>${{ number_format($purchase->overall_price - $purchase->upfront_payment, 2) }}</td>
                         <td>{{ $purchase->purchase_date->format('Y-m-d') }}</td>
                         <td>
-                            <a href="#" style="color: #3b82f6; text-decoration: none; margin-right: 0.5rem;">View</a>
+                            <a href="{{ route('purchases.show', $purchase) }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; margin-right:0.3rem;">View</a>
                             @if(session('user_role') === 'editor')
-                                <a href="#" style="color: #10b981; text-decoration: none; margin-right: 0.5rem;">Edit</a>
-                                <form action="#" method="POST" style="display: inline;">
+                                <a href="{{ route('purchases.edit', $purchase) }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; margin-right:0.3rem;">Edit</a>
+                                <form action="{{ route('purchases.destroy', $purchase) }}" method="POST" style="display: inline;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Delete this purchase?')" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: 0.9rem;">Delete</button>
+                                    <button type="submit" onclick="return confirm('Delete this purchase?')" class="btn btn-outline" style="padding:0.3rem 0.8rem; color: #ef4444; border-color: #ef4444;">Delete</button>
                                 </form>
                             @endif
                         </td>

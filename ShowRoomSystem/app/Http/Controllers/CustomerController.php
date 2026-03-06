@@ -41,44 +41,46 @@ class CustomerController extends Controller
     /**
      * Show the form for creating a new customer.
      */
-    public function create()
+    public function create(Request $request)
     {
         $this->authorizeEditor();
-        return view('customers.create');
+        $redirectToPurchase = $request->get('redirect') === 'purchase';
+        return view('customers.create', compact('redirectToPurchase'));
     }
-
+    
     public function store(Request $request, GoogleDriveService $driveService)
     {
         $this->authorizeEditor();
 
         $request->validate([
-            'name'          => 'required|string|max:255',
-            'phone_number'  => 'nullable|string|max:20',
-            // folder_path is no longer manually entered
+            'name'         => 'required|string|max:255',
+            'phone_number' => 'nullable|string|max:20',
         ]);
 
-        // Create customer without folder_path initially
         $customer = Customer::create([
             'name'         => $request->name,
             'phone_number' => $request->phone_number,
-            // folder_path will be set after Drive folder creation
         ]);
 
-        // Create Google Drive folder
-        $folderName = $this->sanitizeFolderName($customer->name); // e.g., remove special chars
+        $folderName = $this->sanitizeFolderName($customer->name);
         $folderId = $driveService->createFolder($folderName);
 
         if ($folderId) {
-            // Save folder ID in database
-            $customer->folder_path = $folderId; // we store the folder ID, not the path
+            $customer->folder_path = $folderId;
             $customer->save();
         } else {
-            // Optionally log failure, but don't stop the process
             \Log::warning("Google Drive folder creation failed for customer {$customer->id}");
         }
 
+        // Redirect back to purchase form if coming from there
+        if ($request->get('redirect') === 'purchase') {
+            return redirect()->route('purchases.create')
+                ->with('selected_customer_id', $customer->id)
+                ->with('success', 'Customer created! Now record their purchase.');
+        }
+
         return redirect()->route('customers.index')
-                        ->with('success', 'Customer created successfully.');
+            ->with('success', 'Customer created successfully.');
     }
 
     /**

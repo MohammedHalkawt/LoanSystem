@@ -40,7 +40,15 @@
                             <td>#{{ $customer->id }}</td>
                             <td>{{ $customer->name }}</td>
                             <td>{{ $customer->phone_number ?? '—' }}</td>
-                            <td style="font-size:0.8rem; color:#6b7280;">{{ $customer->folder_path ?? '—' }}</td>
+                            <td>
+                                @if($customer->folder_path)
+                                    <a href="https://drive.google.com/drive/folders/{{ $customer->folder_path }}" target="_blank" style="color: #0d6efd; text-decoration: none; font-size:0.85rem;">
+                                        Open Folder
+                                    </a>
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td>{{ $customer->created_at->format('M d, Y') }}</td>
                             <td>
                                 <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; margin-right:0.3rem;">View</a>

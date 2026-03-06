@@ -10,7 +10,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn() => redirect('/login'));
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/logout', fn() => session()->flush() or redirect('/login'));
+
+Route::get('/logout', function () { 
+    session()->flush();
+    return redirect('/login');
+})->name('logout');
 
 // Protected routes (require auth.session)
 Route::middleware('auth.session')->group(function () {

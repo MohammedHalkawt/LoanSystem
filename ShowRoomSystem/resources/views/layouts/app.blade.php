@@ -92,26 +92,6 @@
             padding: 2rem 2rem;
         }
 
-        .toast-success {
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
-            color: #065f46;
-            padding: 1rem 1.5rem;
-            border-radius: 16px;
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .toast-success button {
-            background: none;
-            border: none;
-            color: #065f46;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0 0.5rem;
-        }
 
         .welcome-header {
             margin-bottom: 2rem;
@@ -301,11 +281,7 @@
             .action-desc {
                 color: #9ca3af;
             }
-            .toast-success {
-                background: #064e3b;
-                border-color: #10b981;
-                color: #d1fae5;
-            }
+
             .nav-links {
                 display: flex;
                 align-items: center;
@@ -367,7 +343,6 @@
         .search-box { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
         .search-box input { flex: 1; }
         .alert { padding: 1rem 1.5rem; border-radius: 16px; margin-bottom: 1.5rem; }
-        .alert-success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
         /* Dark mode */
         @media (prefers-color-scheme: dark) {
             body { background: #111827; color: #f9fafb; }
@@ -389,13 +364,12 @@
             .form-group label { color: #e5e7eb; }
             .form-control { background: #111827; border-color: #374151; color: white; }
             .form-control:focus { border-color: #9ca3af; background: #1f2937; }
-            .alert-success { background: #064e3b; border-color: #10b981; color: #d1fae5; }
         }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <span class="nav-brand">{{ config('app.name', 'Laravel') }}</span>
+        <span class="nav-brand">ShowRoom</span>
         <div class="nav-links">
             <a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a>
             <a href="{{ route('customers.index') }}" class="nav-link">Customers</a>
@@ -412,13 +386,6 @@
     </nav>
 
     <div class="container">
-        @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-                <button style="float:right; background:none; border:none; color:inherit; font-size:1.2rem; cursor:pointer;" onclick="this.parentElement.remove()">✕</button>
-            </div>
-        @endif
-
         @yield('content')
     </div>
 </body>

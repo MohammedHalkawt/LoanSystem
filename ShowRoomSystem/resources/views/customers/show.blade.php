@@ -28,7 +28,7 @@
                 <p style="font-size:0.8rem; color:#6b7280; margin-bottom:0.2rem;">Google Drive Folder</p>
                 @if($customer->google_drive_link)
                     <a href="{{ $customer->google_drive_link }}" target="_blank" style="color: #0d6efd; text-decoration: none;">
-                        {{ $customer->folder_path }} 🔗
+                        Open Folder
                     </a>
                 @else
                     <p style="color: #9ca3af;">—</p>

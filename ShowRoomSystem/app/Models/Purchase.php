@@ -18,6 +18,7 @@ class Purchase extends Model
         'overall_price',
         'basic_price',
         'upfront_payment',
+        'months',
         'purchase_date',
     ];
 
