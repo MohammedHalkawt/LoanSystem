@@ -88,6 +88,7 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
+        $customer->load(['cars.purchase', 'cars.rentPayments']);
         return view('customers.show', compact('customer'));
     }
 

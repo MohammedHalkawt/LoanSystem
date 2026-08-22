@@ -14,13 +14,18 @@ class RentPayment extends Model
         'customer_id',
         'car_id',
         'amount',
+        'covered_month_from',
+        'covered_month_to',
+        'months_count',
         'payment_date',
         'receipt_path',
+        'receipt_drive_file_id',
     ];
 
     protected $casts = [
         'payment_date' => 'datetime',
         'amount'       => 'decimal:2',
+        'months_count' => 'integer',
     ];
 
     /**
@@ -37,5 +42,14 @@ class RentPayment extends Model
     public function car(): BelongsTo
     {
         return $this->belongsTo(Car::class);
+    }
+
+    public function getReceiptDriveLinkAttribute()
+    {
+        if (!$this->receipt_drive_file_id) {
+            return null;
+        }
+
+        return "https://drive.google.com/file/d/{$this->receipt_drive_file_id}/view";
     }
 }

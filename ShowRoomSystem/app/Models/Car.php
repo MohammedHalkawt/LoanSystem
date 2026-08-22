@@ -16,6 +16,8 @@ class Car extends Model
         'name',
         'model_year',
         'status',
+        'drive_folder_id',
+        'purchase_receipt_file_id',
     ];
 
     protected $casts = [
@@ -36,5 +38,19 @@ class Car extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function rentPayments()
+    {
+        return $this->hasMany(RentPayment::class);
+    }
+
+    public function getDriveLinkAttribute()
+    {
+        if (!$this->drive_folder_id) {
+            return null;
+        }
+
+        return "https://drive.google.com/drive/folders/{$this->drive_folder_id}";
     }
 }

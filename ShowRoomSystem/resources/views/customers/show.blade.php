@@ -44,4 +44,59 @@
             </div>
         </div>
     </div>
+
+    <div class="card" style="margin-top: 2rem;">
+        <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem;">Cars</h3>
+
+        @if($customer->cars->count())
+            <div style="overflow-x:auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Car</th>
+                            <th>Model Year</th>
+                            <th>Remaining Balance</th>
+                            <th>Remaining Months</th>
+                            <th>Drive Folder</th>
+                            <th>Purchase Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($customer->cars as $car)
+                            @php
+                                $purchase = $car->purchase;
+                                $startingBalance = max(0, ($purchase->overall_price ?? 0) - ($purchase->upfront_payment ?? 0));
+                                $paidAmount = $car->rentPayments->sum('amount');
+                                $paidMonths = $car->rentPayments->sum('months_count');
+                                $remainingBalance = max(0, $startingBalance - $paidAmount);
+                                $remainingMonths = $purchase && $purchase->months ? max(0, $purchase->months - $paidMonths) : 0;
+                            @endphp
+                            <tr>
+                                <td>{{ $car->name }}</td>
+                                <td>{{ $car->model_year }}</td>
+                                <td>${{ number_format($remainingBalance, 2) }}</td>
+                                <td>{{ $remainingMonths }}</td>
+                                <td>
+                                    @if($car->drive_link)
+                                        <a href="{{ $car->drive_link }}" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.8rem;">Open</a>
+                                    @else
+                                        <span style="color:#6b7280;">Not created</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($car->purchase_receipt_file_id)
+                                        <a href="https://drive.google.com/file/d/{{ $car->purchase_receipt_file_id }}/view" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.8rem;">Open</a>
+                                    @else
+                                        <span style="color:#6b7280;">Not uploaded</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <p style="color:#6b7280;">No cars recorded for this customer yet.</p>
+        @endif
+    </div>
 @endsection

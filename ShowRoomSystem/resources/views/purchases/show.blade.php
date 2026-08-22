@@ -56,6 +56,22 @@
             <p style="font-size:0.8rem; color:#6b7280; margin-bottom:0.2rem;">Purchase Date</p>
             <p style="font-size:1.1rem;">{{ $purchase->purchase_date->format('F d, Y') }}</p>
         </div>
+        <div>
+            <p style="font-size:0.8rem; color:#6b7280; margin-bottom:0.2rem;">Car Drive Folder</p>
+            @if($purchase->car?->drive_link)
+                <a href="{{ $purchase->car->drive_link }}" target="_blank" class="btn btn-outline">Open Folder</a>
+            @else
+                <p style="font-size:1.1rem; color:#6b7280;">Not created</p>
+            @endif
+        </div>
+        <div>
+            <p style="font-size:0.8rem; color:#6b7280; margin-bottom:0.2rem;">Purchase Receipt</p>
+            @if($purchase->car?->purchase_receipt_file_id)
+                <a href="https://drive.google.com/file/d/{{ $purchase->car->purchase_receipt_file_id }}/view" target="_blank" class="btn btn-outline">Open Receipt</a>
+            @else
+                <p style="font-size:1.1rem; color:#6b7280;">Not uploaded</p>
+            @endif
+        </div>
     </div>
 </div>
 @endsection

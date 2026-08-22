@@ -16,6 +16,20 @@ class Customer extends Model
     ];
     protected $appends = ['google_drive_link'];
 
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
+
+    public function cars()
+    {
+        return $this->hasMany(Car::class);
+    }
+
+    public function rentPayments()
+    {
+        return $this->hasMany(RentPayment::class);
+    }
 
     public function getGoogleDriveLinkAttribute()
     {

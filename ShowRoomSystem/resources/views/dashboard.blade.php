@@ -17,17 +17,10 @@
                 <div class="action-title">Record Purchase</div>
                 <div class="action-desc">Add a new car purchase</div>
             </a>
-            @if(Route::has('rents.create'))
-                <a href="{{ route('rents.create') }}" class="action-btn">
-                    <div class="action-title">Record Rent</div>
-                    <div class="action-desc">Log a rent payment</div>
-                </a>
-            @else
-                <div class="action-btn" style="opacity: 0.6; cursor: not-allowed;">
-                    <div class="action-title">Record Rent</div>
-                    <div class="action-desc">Coming soon</div>
-                </div>
-            @endif
+            <a href="{{ route('rents.create') }}" class="action-btn">
+                <div class="action-title">Record Rent</div>
+                <div class="action-desc">Log a rent payment</div>
+            </a>
         </div>
     </div>
 @elseif(session('user_role') === 'viewer')
@@ -42,10 +35,10 @@
                 <div class="action-title">View Purchases</div>
                 <div class="action-desc">Browse all purchases</div>
             </a>
-            <div class="action-btn" style="opacity: 0.6; cursor: not-allowed;">
+            <a href="{{ route('rents.index') }}" class="action-btn">
                 <div class="action-title">View Rents</div>
-                <div class="action-desc">Coming soon</div>
-            </div>
+                <div class="action-desc">Browse all rent payments</div>
+            </a>
         </div>
     </div>
 @endif

@@ -5,6 +5,7 @@ namespace App\Services;
 use Google\Client;
 use Google\Service\Drive;
 use Google\Service\Drive\DriveFile;
+use Illuminate\Support\Facades\Log;
 
 class GoogleDriveService
 {
@@ -13,12 +14,18 @@ class GoogleDriveService
 
     public function __construct()
     {
-        $client = new Client();
-        $client->setAuthConfig(storage_path(env('GOOGLE_DRIVE_CREDENTIALS_PATH')));
-        $client->addScope(Drive::DRIVE);
+        try {
+            $client = new Client();
+            $client->setAuthConfig(storage_path(env('GOOGLE_DRIVE_CREDENTIALS_PATH')));
+            $client->addScope(Drive::DRIVE);
 
-        $this->drive = new Drive($client);
-        $this->baseFolderId = env('GOOGLE_DRIVE_FOLDER_ID');
+            $this->drive = new Drive($client);
+            $this->baseFolderId = env('GOOGLE_DRIVE_FOLDER_ID');
+        } catch (\Exception $e) {
+            Log::warning('Google Drive setup failed: ' . $e->getMessage());
+            $this->drive = null;
+            $this->baseFolderId = null;
+        }
     }
 
     /**
@@ -29,17 +36,91 @@ class GoogleDriveService
      */
     public function createFolder($folderName)
     {
+        return $this->createFolderIn($folderName, $this->baseFolderId);
+    }
+
+    public function createFolderIn($folderName, $parentFolderId)
+    {
         try {
+            if (!$this->drive || !$parentFolderId) {
+                return null;
+            }
+
             $fileMetadata = new DriveFile([
                 'name' => $folderName,
                 'mimeType' => 'application/vnd.google-apps.folder',
-                'parents' => [$this->baseFolderId]
+                'parents' => [$parentFolderId]
             ]);
 
             $folder = $this->drive->files->create($fileMetadata, ['fields' => 'id']);
             return $folder->id;
         } catch (\Exception $e) {
-            // Log error: $e->getMessage()
+            Log::warning('Google Drive folder creation failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function findOrCreateFolder($folderName, $parentFolderId)
+    {
+        if (!$parentFolderId) {
+            return null;
+        }
+
+        try {
+            if (!$this->drive) {
+                return null;
+            }
+
+            $escapedName = str_replace("'", "\\'", $folderName);
+            $query = sprintf(
+                "name = '%s' and mimeType = 'application/vnd.google-apps.folder' and '%s' in parents and trashed = false",
+                $escapedName,
+                $parentFolderId
+            );
+
+            $folders = $this->drive->files->listFiles([
+                'q' => $query,
+                'fields' => 'files(id, name)',
+                'pageSize' => 1,
+            ]);
+
+            if (count($folders->files) > 0) {
+                return $folders->files[0]->id;
+            }
+
+            return $this->createFolderIn($folderName, $parentFolderId);
+        } catch (\Exception $e) {
+            Log::warning('Google Drive folder lookup failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function uploadFile($filePath, $fileName, $parentFolderId, $mimeType = 'application/pdf')
+    {
+        if (!$parentFolderId || !is_file($filePath)) {
+            return null;
+        }
+
+        try {
+            if (!$this->drive) {
+                return null;
+            }
+
+            $fileMetadata = new DriveFile([
+                'name' => $fileName,
+                'parents' => [$parentFolderId],
+            ]);
+
+            $file = $this->drive->files->create($fileMetadata, [
+                'data' => file_get_contents($filePath),
+                'mimeType' => $mimeType,
+                'uploadType' => 'multipart',
+                'fields' => 'id, webViewLink',
+            ]);
+
+            return $file->id;
+        } catch (\Exception $e) {
+            Log::warning('Google Drive upload failed: ' . $e->getMessage());
             return null;
         }
     }

@@ -374,6 +374,7 @@
             <a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a>
             <a href="{{ route('customers.index') }}" class="nav-link">Customers</a>
             <a href="{{ route('purchases.index') }}" class="nav-link">Purchases</a>
+            <a href="{{ route('rents.index') }}" class="nav-link">Rent</a>
         </div>
         <div class="user-menu">
             <div class="user-info">
