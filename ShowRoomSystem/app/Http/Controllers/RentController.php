@@ -7,7 +7,6 @@ use App\Models\Customer;
 use App\Models\RentPayment;
 use App\Services\GoogleDriveService;
 use App\Services\ReceiptService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,7 +23,7 @@ class RentController extends Controller
     {
         $search = $request->get('search');
 
-        $rents = RentPayment::with(['customer', 'car.purchase'])
+        $rents = RentPayment::with(['customer', 'car.purchase', 'car.rentPayments'])
             ->when($search, function ($query, $search) {
                 $query->whereHas('customer', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
@@ -33,7 +32,30 @@ class RentController extends Controller
                 });
             })
             ->latest('payment_date')
+            ->latest('id')
             ->paginate(15);
+
+        $rents->getCollection()->transform(function ($rent) {
+            $purchase = $rent->car?->purchase;
+            $startingBalance = $purchase
+                ? max(0, (float) $purchase->overall_price - (float) $purchase->upfront_payment)
+                : 0;
+
+            $paidThroughThisPayment = $rent->car?->rentPayments
+                ->filter(function ($payment) use ($rent) {
+                    if ($payment->payment_date->lt($rent->payment_date)) {
+                        return true;
+                    }
+
+                    return $payment->payment_date->isSameDay($rent->payment_date)
+                        && $payment->id <= $rent->id;
+                })
+                ->sum('amount') ?? 0;
+
+            $rent->remaining_after_payment = max(0, $startingBalance - (float) $paidThroughThisPayment);
+
+            return $rent;
+        });
 
         return view('rents.index', compact('rents'));
     }
@@ -46,15 +68,27 @@ class RentController extends Controller
             ->orderBy('name')
             ->get();
 
+        $customerOptions = $customers->map(function ($customer) {
+            return [
+                'id' => $customer->id,
+                'label' => $customer->name,
+                'phone' => $customer->phone_number ?: 'No phone',
+            ];
+        })->values();
+
         $cars = $customers->flatMap(function ($customer) {
             return $customer->cars->map(function ($car) use ($customer) {
                 $purchase = $car->purchase;
                 $totalMonths = (int) ($purchase->months ?? 0);
                 $paidAmount = (float) $car->rentPayments->sum('amount');
-                $paidMonths = (int) $car->rentPayments->sum('months_count');
                 $startingBalance = max(0, (float) $purchase->overall_price - (float) $purchase->upfront_payment);
                 $remainingBalance = max(0, $startingBalance - $paidAmount);
-                $remainingMonths = $totalMonths > 0 ? max(0, $totalMonths - $paidMonths) : 0;
+                $remainingMonths = $totalMonths;
+                $monthlyAmount = $remainingMonths > 0 ? $remainingBalance / $remainingMonths : $remainingBalance;
+
+                if ($remainingBalance <= 0 || $remainingMonths <= 0) {
+                    return null;
+                }
 
                 return [
                     'id' => $car->id,
@@ -63,13 +97,13 @@ class RentController extends Controller
                     'name' => $car->name,
                     'model_year' => $car->model_year,
                     'remaining_balance' => round($remainingBalance, 2),
-                    'monthly_amount' => $totalMonths > 0 ? round($startingBalance / $totalMonths, 2) : $remainingBalance,
+                    'monthly_amount' => round($monthlyAmount, 2),
                     'remaining_months' => $remainingMonths,
                 ];
-            });
+            })->filter();
         })->values();
 
-        return view('rents.create', compact('customers', 'cars'));
+        return view('rents.create', compact('customers', 'customerOptions', 'cars'));
     }
 
     public function store(Request $request, GoogleDriveService $driveService, ReceiptService $receiptService)
@@ -80,12 +114,11 @@ class RentController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'car_id' => 'required|exists:cars,id',
             'amount' => 'required|numeric|min:0.01',
-            'covered_month_from' => 'required|date_format:Y-m',
-            'covered_month_to' => 'required|date_format:Y-m|after_or_equal:covered_month_from',
             'payment_date' => 'nullable|date',
+            'notes' => 'nullable|string|max:5000',
         ]);
 
-        $car = Car::with('purchase', 'customer')->findOrFail($validated['car_id']);
+        $car = Car::with(['purchase', 'customer', 'rentPayments'])->findOrFail($validated['car_id']);
 
         if ((int) $car->customer_id !== (int) $validated['customer_id']) {
             return back()
@@ -93,22 +126,32 @@ class RentController extends Controller
                 ->withErrors(['car_id' => 'The selected car does not belong to the selected customer.']);
         }
 
-        $monthsCount = $this->countCoveredMonths(
-            $validated['covered_month_from'],
-            $validated['covered_month_to']
-        );
+        $rentPlan = $this->calculateRentPlan($car, (float) $validated['amount']);
+
+        if ($rentPlan['remaining_balance'] <= 0 || $rentPlan['remaining_months'] <= 0) {
+            return back()
+                ->withInput()
+                ->withErrors(['car_id' => 'This car is already fully paid. No more rent can be recorded.']);
+        }
+
+        if ((float) $validated['amount'] > $rentPlan['remaining_balance'] + 0.009) {
+            return back()
+                ->withInput()
+                ->withErrors(['amount' => 'This payment is more than the remaining balance. Remaining balance is $' . number_format($rentPlan['remaining_balance'], 2) . '.']);
+        }
 
         $receiptUploaded = false;
 
-        DB::transaction(function () use ($validated, $monthsCount, $car, $driveService, $receiptService, &$receiptUploaded) {
+        DB::transaction(function () use ($validated, $rentPlan, $car, $driveService, $receiptService, &$receiptUploaded) {
             $rentPayment = RentPayment::create([
                 'customer_id' => $validated['customer_id'],
                 'car_id' => $validated['car_id'],
                 'amount' => $validated['amount'],
-                'covered_month_from' => $validated['covered_month_from'],
-                'covered_month_to' => $validated['covered_month_to'],
-                'months_count' => $monthsCount,
+                'covered_month_from' => $rentPlan['covered_month_from'],
+                'covered_month_to' => $rentPlan['covered_month_to'],
+                'months_count' => $rentPlan['months_count'],
                 'payment_date' => $validated['payment_date'] ?? now(),
+                'notes' => $validated['notes'] ?? null,
             ]);
 
             $carFolderId = $car->drive_folder_id;
@@ -126,7 +169,7 @@ class RentController extends Controller
                 $receiptPath = $receiptService->createRentReceipt($rentPayment);
                 $fileId = $driveService->uploadFile(
                     $receiptPath,
-                    'rent-receipt-' . $rentPayment->id . '.pdf',
+                    $receiptService->rentReceiptFileName($rentPayment),
                     $carFolderId
                 );
 
@@ -152,12 +195,24 @@ class RentController extends Controller
         return view('rents.show', compact('rent'));
     }
 
-    private function countCoveredMonths(string $from, string $to): int
+    private function calculateRentPlan(Car $car, float $amount): array
     {
-        $fromDate = Carbon::createFromFormat('Y-m', $from)->startOfMonth();
-        $toDate = Carbon::createFromFormat('Y-m', $to)->startOfMonth();
+        $purchase = $car->purchase;
+        $totalMonths = (int) ($purchase->months ?? 0);
+        $paidAmount = (float) $car->rentPayments->sum('amount');
+        $startingBalance = max(0, (float) $purchase->overall_price - (float) $purchase->upfront_payment);
+        $remainingBalance = max(0, $startingBalance - $paidAmount);
+        $remainingMonths = $totalMonths;
+        $monthlyAmount = $remainingMonths > 0 ? $remainingBalance / $remainingMonths : 0;
 
-        return (int) $fromDate->diffInMonths($toDate) + 1;
+        return [
+            'remaining_balance' => $remainingBalance,
+            'remaining_months' => $remainingMonths,
+            'monthly_amount' => $monthlyAmount,
+            'months_count' => 0,
+            'covered_month_from' => null,
+            'covered_month_to' => null,
+        ];
     }
 
     private function sanitizeFolderName($name)

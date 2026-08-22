@@ -13,8 +13,8 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f9fafb;
-            color: #1f2937;
+            background: #f5f5f7;
+            color: #1d1d1f;
             line-height: 1.5;
         }
 
@@ -169,10 +169,11 @@
         }
 
         .quick-actions {
-            background: white;
-            border-radius: 24px;
+            background: rgba(255,255,255,0.92);
+            border-radius: 8px;
             padding: 1.8rem;
-            border: 1px solid #f3f4f6;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 18px 45px rgba(0,0,0,0.04);
         }
 
         .quick-actions h3 {
@@ -189,9 +190,9 @@
         }
 
         .action-btn {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 20px;
+            background: #fbfbfd;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
             padding: 1rem;
             text-align: left;
             cursor: pointer;
@@ -202,9 +203,9 @@
         }
 
         .action-btn:hover {
-            background: #f3f4f6;
-            border-color: #d1d5db;
-            transform: translateY(-2px);
+            background: white;
+            border-color: #a1a1a6;
+            transform: translateY(-1px);
         }
 
         .action-title {
@@ -312,12 +313,12 @@
             }
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f9fafb; color: #1f2937; }
-        .navbar { background: white; border-bottom: 1px solid #e5e7eb; padding: 0.75rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
-        .nav-brand { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #1a1e24, #2d3748); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .nav-links { display: flex; gap: 1.5rem; margin-left: 2rem; }
-        .nav-link { color: #6b7280; text-decoration: none; font-size: 0.95rem; font-weight: 500; padding: 0.5rem 0; border-bottom: 2px solid transparent; }
-        .nav-link:hover { color: #1f2937; border-bottom-color: #1f2937; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1d1d1f; }
+        .navbar { background: rgba(255,255,255,0.82); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(0,0,0,0.08); padding: 0.75rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+        .nav-brand { font-size: 1.45rem; font-weight: 700; color: #1d1d1f; background: none; -webkit-text-fill-color: currentColor; }
+        .nav-links { display: flex; gap: 1.35rem; margin-left: 2rem; }
+        .nav-link { color: #515154; text-decoration: none; font-size: 0.94rem; font-weight: 500; padding: 0.5rem 0; border-bottom: 2px solid transparent; }
+        .nav-link:hover { color: #1d1d1f; border-bottom-color: #1d1d1f; }
         .user-menu { display: flex; align-items: center; gap: 1rem; }
         .avatar { width: 40px; height: 40px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #374151; }
         .user-info { text-align: right; }
@@ -326,23 +327,31 @@
         .logout-link { color: #6b7280; text-decoration: none; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 20px; }
         .logout-link:hover { background: #f3f4f6; color: #1f2937; }
         .container { max-width: 1280px; margin: 0 auto; padding: 2rem; }
-        .card { background: white; border-radius: 24px; padding: 1.8rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); border: 1px solid #f3f4f6; }
-        .btn { display: inline-block; padding: 0.6rem 1.2rem; border-radius: 30px; font-size: 0.9rem; font-weight: 500; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; }
-        .btn-primary { background: #1a1e24; color: white; }
-        .btn-primary:hover { background: #0f1318; transform: scale(1.02); }
-        .btn-outline { background: transparent; border: 1px solid #d1d5db; color: #374151; }
-        .btn-outline:hover { background: #f9fafb; }
+        .card { background: rgba(255,255,255,0.92); border-radius: 8px; padding: 1.8rem; box-shadow: 0 18px 45px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06); }
+        .btn { display: inline-block; padding: 0.62rem 1.15rem; border-radius: 999px; font-size: 0.9rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.18s ease; }
+        .btn-primary { background: #0071e3; color: white; }
+        .btn-primary:hover { background: #0077ed; transform: translateY(-1px); }
+        .btn-outline { background: rgba(255,255,255,0.65); border: 1px solid #d2d2d7; color: #1d1d1f; }
+        .btn-outline:hover { background: white; border-color: #a1a1a6; }
         .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         .table th { text-align: left; padding: 0.75rem 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; border-bottom: 1px solid #e5e7eb; }
         .table td { padding: 1rem 0.5rem; border-bottom: 1px solid #f3f4f6; }
         .table tr:hover td { background: #f9fafb; }
+        .table tbody tr[onclick] { transition: background 0.16s ease, box-shadow 0.16s ease; }
+        .table tbody tr[onclick]:hover td { background: #f8fafc; }
+        .table tbody tr[onclick] td:first-child { border-left: 3px solid transparent; }
+        .table tbody tr[onclick]:hover td:first-child { border-left-color: #111827; }
         .form-group { margin-bottom: 1.5rem; }
         .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .form-control { width: 100%; padding: 0.8rem 1.2rem; border: 2px solid #e5e7eb; border-radius: 16px; font-size: 0.95rem; background: #fafafa; }
-        .form-control:focus { outline: none; border-color: #2d3748; background: white; box-shadow: 0 0 0 4px rgba(45,55,72,0.1); }
+        .form-control { width: 100%; padding: 0.82rem 1rem; border: 1px solid #d2d2d7; border-radius: 8px; font-size: 0.95rem; background: rgba(255,255,255,0.9); }
+        .form-control:focus { outline: none; border-color: #0071e3; background: white; box-shadow: 0 0 0 4px rgba(0,113,227,0.12); }
+        textarea.form-control { resize: vertical; min-height: 108px; font-family: inherit; line-height: 1.5; }
         .search-box { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
         .search-box input { flex: 1; }
         .alert { padding: 1rem 1.5rem; border-radius: 16px; margin-bottom: 1.5rem; }
+        .modal-backdrop { position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; padding: 1rem; background: rgba(29,29,31,0.34); backdrop-filter: blur(12px); }
+        .modal-panel { width: min(440px, 100%); background: rgba(255,255,255,0.96); border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1.5rem; box-shadow: 0 28px 80px rgba(0,0,0,0.18); }
+        .icon-close { width: 34px; height: 34px; border-radius: 999px; border: 0; background: #f5f5f7; color: #1d1d1f; font-size: 1.35rem; line-height: 1; cursor: pointer; }
         /* Dark mode */
         @media (prefers-color-scheme: dark) {
             body { background: #111827; color: #f9fafb; }
@@ -361,6 +370,7 @@
             .table th { color: #9ca3af; border-bottom-color: #374151; }
             .table td { border-bottom-color: #374151; }
             .table tr:hover td { background: #26313d; }
+            .table tbody tr[onclick]:hover td:first-child { border-left-color: #f9fafb; }
             .form-group label { color: #e5e7eb; }
             .form-control { background: #111827; border-color: #374151; color: white; }
             .form-control:focus { border-color: #9ca3af; background: #1f2937; }

@@ -18,22 +18,69 @@
 
         <input type="hidden" name="customer_id" id="customer_id" value="{{ old('customer_id') }}">
 
-        <div class="form-group">
+        <style>
+            .autocomplete-wrap {
+                position: relative;
+            }
+
+            .autocomplete-results {
+                position: absolute;
+                top: calc(100% + 0.35rem);
+                left: 0;
+                right: 0;
+                z-index: 30;
+                background: white;
+                border: 1px solid #d1d5db;
+                border-radius: 16px;
+                box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
+                max-height: 260px;
+                overflow-y: auto;
+                display: none;
+            }
+
+            .autocomplete-option {
+                width: 100%;
+                display: block;
+                text-align: left;
+                padding: 0.9rem 1rem;
+                background: white;
+                color: #111827;
+                border: 0;
+                border-bottom: 1px solid #f3f4f6;
+                border-radius: 0;
+                margin: 0;
+                box-shadow: none;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+            }
+
+            .autocomplete-option:hover {
+                background: #f9fafb;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .autocomplete-meta {
+                display: block;
+                margin-top: 0.15rem;
+                font-size: 0.78rem;
+                font-weight: 500;
+                color: #6b7280;
+            }
+        </style>
+
+        <div class="form-group autocomplete-wrap">
             <label for="customer_search">Customer <span style="color: #ef4444;">*</span></label>
             <input
                 type="text"
                 id="customer_search"
                 class="form-control"
-                list="customer_suggestions"
                 autocomplete="off"
                 placeholder="Start typing a customer name..."
                 required
             >
-            <datalist id="customer_suggestions">
-                @foreach($customers as $customer)
-                    <option value="#{{ $customer->id }} {{ $customer->name }} - {{ $customer->phone_number ?: 'No phone' }}"></option>
-                @endforeach
-            </datalist>
+            <div id="customer_results" class="autocomplete-results"></div>
             @error('customer_id')
                 <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">{{ $message }}</div>
             @enderror
@@ -64,6 +111,11 @@
             </div>
         </div>
 
+        <div style="padding:1rem; border-radius:16px; background:#f9fafb; border:1px solid #e5e7eb; margin-bottom: 1.5rem;">
+            <div style="font-size:0.75rem; color:#6b7280; text-transform:uppercase;">Calculated Coverage</div>
+            <div id="coverage_preview" style="font-size:1rem; font-weight:600; margin-top:0.35rem;">Select a car and enter an amount.</div>
+        </div>
+
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
                 <label for="amount">Amount Paid ($) <span style="color: #ef4444;">*</span></label>
@@ -79,22 +131,12 @@
             </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="form-group">
-                <label for="covered_month_from">Month From <span style="color: #ef4444;">*</span></label>
-                <input type="month" name="covered_month_from" id="covered_month_from" class="form-control" value="{{ old('covered_month_from', date('Y-m')) }}" required>
-                @error('covered_month_from')
-                    <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="covered_month_to">Month To <span style="color: #ef4444;">*</span></label>
-                <input type="month" name="covered_month_to" id="covered_month_to" class="form-control" value="{{ old('covered_month_to', date('Y-m')) }}" required>
-                @error('covered_month_to')
-                    <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">{{ $message }}</div>
-                @enderror
-            </div>
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea name="notes" id="notes" class="form-control" rows="4" placeholder="Optional note for this rent payment...">{{ old('notes') }}</textarea>
+            @error('notes')
+                <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">{{ $message }}</div>
+            @enderror
         </div>
 
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
@@ -105,20 +147,20 @@
 </div>
 
 <script>
-    const customers = @json($customers->map(fn ($customer) => [
-        'id' => $customer->id,
-        'label' => '#' . $customer->id . ' ' . $customer->name . ' - ' . ($customer->phone_number ?: 'No phone'),
-    ])->values());
+    const customers = @json($customerOptions);
     const cars = @json($cars);
     const oldCustomerId = "{{ old('customer_id') }}";
     const oldCarId = "{{ old('car_id') }}";
 
     const customerSearch = document.getElementById('customer_search');
+    const customerResults = document.getElementById('customer_results');
     const customerId = document.getElementById('customer_id');
     const carSelect = document.getElementById('car_id');
+    const amountInput = document.getElementById('amount');
     const remainingBalance = document.getElementById('remaining_balance');
     const monthlyAmount = document.getElementById('monthly_amount');
     const remainingMonths = document.getElementById('remaining_months');
+    const coveragePreview = document.getElementById('coverage_preview');
 
     function money(value) {
         return '$' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -132,6 +174,7 @@
             carSelect.disabled = true;
             carSelect.innerHTML = '<option value="">No cars found for this customer</option>';
             updateSummary(null);
+            updateCoveragePreview();
             return;
         }
 
@@ -150,6 +193,7 @@
         }
 
         updateSummary(cars.find(car => String(car.id) === String(carSelect.value)));
+        updateCoveragePreview();
     }
 
     function updateSummary(car) {
@@ -158,16 +202,101 @@
         remainingMonths.textContent = car?.remaining_months ?? 0;
     }
 
+    function selectedCar() {
+        return cars.find(car => String(car.id) === String(carSelect.value));
+    }
+
+    function addMonths(date, months) {
+        const next = new Date(date.getTime());
+        next.setMonth(next.getMonth() + months);
+        return next;
+    }
+
+    function formatMonth(date) {
+        return date.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+    }
+
+    function updateCoveragePreview() {
+        const car = selectedCar();
+        const amount = Number(amountInput.value || 0);
+
+        if (!car || amount <= 0) {
+            coveragePreview.textContent = 'Select a car and enter an amount.';
+            return;
+        }
+
+        if (amount > Number(car.remaining_balance) + 0.009) {
+            coveragePreview.textContent = 'This is more than the remaining balance and cannot be recorded.';
+            return;
+        }
+
+        const balanceAfterPayment = Math.max(0, Number(car.remaining_balance) - amount);
+        const nextMonthlyAmount = Number(car.remaining_months) > 0
+            ? balanceAfterPayment / Number(car.remaining_months)
+            : 0;
+
+        if (balanceAfterPayment <= 0.009) {
+            coveragePreview.textContent = 'This will fully pay the remaining balance.';
+            return;
+        }
+
+        coveragePreview.textContent = 'Balance after payment: ' + money(balanceAfterPayment)
+            + '. New per-month amount: ' + money(nextMonthlyAmount) + '.';
+    }
+
+    function showCustomerResults() {
+        const search = customerSearch.value.trim().toLowerCase();
+        const matches = customers
+            .filter(customer => !search || customer.label.toLowerCase().includes(search))
+            .slice(0, 8);
+
+        customerResults.innerHTML = '';
+
+        if (!matches.length) {
+            customerResults.style.display = 'none';
+            return;
+        }
+
+        matches.forEach(customer => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'autocomplete-option';
+            button.innerHTML = customer.label + '<span class="autocomplete-meta">' + customer.phone + '</span>';
+            button.addEventListener('click', function () {
+                customerSearch.value = customer.label;
+                customerId.value = customer.id;
+                customerResults.style.display = 'none';
+                fillCars(customer.id);
+            });
+            customerResults.appendChild(button);
+        });
+
+        customerResults.style.display = 'block';
+    }
+
     customerSearch.addEventListener('input', function () {
-        const customer = customers.find(item => item.label === this.value);
+        const exactMatches = customers.filter(item => item.label === this.value);
+        const customer = exactMatches.length === 1 ? exactMatches[0] : null;
 
         customerId.value = customer ? customer.id : '';
         fillCars(customer ? customer.id : null);
+        showCustomerResults();
+    });
+
+    customerSearch.addEventListener('focus', showCustomerResults);
+
+    document.addEventListener('click', function (event) {
+        if (!customerResults.contains(event.target) && event.target !== customerSearch) {
+            customerResults.style.display = 'none';
+        }
     });
 
     carSelect.addEventListener('change', function () {
         updateSummary(cars.find(car => String(car.id) === String(this.value)));
+        updateCoveragePreview();
     });
+
+    amountInput.addEventListener('input', updateCoveragePreview);
 
     if (oldCustomerId) {
         const customer = customers.find(item => String(item.id) === String(oldCustomerId));

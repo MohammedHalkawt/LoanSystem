@@ -77,6 +77,14 @@
             @enderror
         </div>
 
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea name="notes" id="notes" class="form-control" rows="4" placeholder="Optional notes for this purchase...">{{ old('notes') }}</textarea>
+            @error('notes')
+                <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">{{ $message }}</div>
+            @enderror
+        </div>
+
         {{-- Form actions --}}
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
             <button type="submit" class="btn btn-primary">Record Purchase</button>

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('title', 'Edit Purchase')
-@section('page', 'Edit Purchase #' . $purchase->id)
+@section('page', 'Edit Purchase')
 
 @section('content')
 <div class="card" style="max-width: 700px; margin: 0 auto;">
-    <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 2rem;">Edit Purchase #{{ $purchase->id }}</h2>
+    <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 2rem;">Edit Purchase</h2>
 
     <form method="POST" action="{{ route('purchases.update', $purchase) }}">
         @csrf
@@ -75,6 +75,14 @@
             <label for="purchase_date">Purchase Date</label>
             <input type="date" name="purchase_date" id="purchase_date" class="form-control" value="{{ old('purchase_date', $purchase->purchase_date->format('Y-m-d')) }}">
             @error('purchase_date')
+                <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea name="notes" id="notes" class="form-control" rows="4" placeholder="Optional notes for this purchase...">{{ old('notes', $purchase->notes) }}</textarea>
+            @error('notes')
                 <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">{{ $message }}</div>
             @enderror
         </div>

@@ -5,6 +5,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RentController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -23,4 +24,5 @@ Route::middleware('auth.session')->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::resource('purchases', PurchaseController::class);
     Route::resource('rents', RentController::class)->only(['index', 'create', 'store', 'show']);
+    Route::get('/reports/monthly', [ReportController::class, 'monthly'])->name('reports.monthly');
 });

@@ -30,6 +30,7 @@ class PurchaseController extends Controller
                 })->orWhere('car_name', 'like', "%{$search}%");
             })
             ->orderBy('purchase_date', 'desc')
+            ->orderBy('id', 'desc')
             ->paginate(15);
 
         return view('purchases.index', compact('purchases'));
@@ -55,6 +56,7 @@ class PurchaseController extends Controller
             'upfront_payment' => 'required|numeric|min:0|lte:overall_price',
             'months'          => 'nullable|integer|min:0',
             'purchase_date'   => 'nullable|date',
+            'notes'           => 'nullable|string|max:5000',
         ]);
         $validated['months'] = $request->filled('months') ? (int) $request->months : null;
         $validated['purchase_date'] = $validated['purchase_date'] ?? now();
@@ -92,7 +94,7 @@ class PurchaseController extends Controller
                 $receiptPath = $receiptService->createPurchaseReceipt($purchase, $car->fresh());
                 $fileId = $driveService->uploadFile(
                     $receiptPath,
-                    'purchase-receipt-' . $purchase->id . '.pdf',
+                    $receiptService->purchaseReceiptFileName($purchase),
                     $folderId
                 );
 
@@ -122,7 +124,7 @@ class PurchaseController extends Controller
         return view('purchases.edit', compact('purchase', 'customers'));
     }
 
-    public function update(Request $request, Purchase $purchase)
+    public function update(Request $request, Purchase $purchase, GoogleDriveService $driveService, ReceiptService $receiptService)
     {
         $this->authorizeEditor();
 
@@ -135,23 +137,66 @@ class PurchaseController extends Controller
             'upfront_payment' => 'required|numeric|min:0|lte:overall_price',
             'months'          => 'nullable|integer|min:0',
             'purchase_date'   => 'nullable|date',
+            'notes'           => 'nullable|string|max:5000',
         ]);
         $validated['months'] = $request->filled('months') ? (int) $request->months : null;
         $validated['purchase_date'] = $validated['purchase_date'] ?? $purchase->purchase_date;
 
-        $purchase->update($validated);
+        $receiptUploaded = false;
 
-        // Sync the car record if it exists
-        if ($purchase->car) {
-            $purchase->car->update([
-                'customer_id' => $validated['customer_id'],
-                'name'        => $validated['car_name'],
-                'model_year'  => $validated['model_year'],
-            ]);
-        }
+        DB::transaction(function () use ($purchase, $validated, $driveService, $receiptService, &$receiptUploaded) {
+            $purchase->update($validated);
+            $purchase->load('customer', 'car');
+
+            if ($purchase->car) {
+                $purchase->car->update([
+                    'customer_id' => $validated['customer_id'],
+                    'name'        => $validated['car_name'],
+                    'model_year'  => $validated['model_year'],
+                ]);
+
+                $car = $purchase->car->fresh();
+                $customerFolderId = $purchase->customer->folder_path;
+
+                if (!$customerFolderId) {
+                    $customerFolderId = $driveService->createFolder($this->sanitizeFolderName($purchase->customer->name));
+
+                    if ($customerFolderId) {
+                        $purchase->customer->update(['folder_path' => $customerFolderId]);
+                    }
+                }
+
+                $folderId = $car->drive_folder_id;
+
+                if (!$folderId) {
+                    $folderName = $this->buildCarFolderName($car, $purchase);
+                    $folderId = $driveService->findOrCreateFolder($folderName, $customerFolderId);
+
+                    if ($folderId) {
+                        $car->update(['drive_folder_id' => $folderId]);
+                    }
+                }
+
+                if ($folderId) {
+                    $receiptPath = $receiptService->createPurchaseReceipt($purchase->fresh('customer'), $car->fresh());
+                    $fileId = $driveService->uploadFile(
+                        $receiptPath,
+                        'updated_' . $receiptService->purchaseReceiptFileName($purchase->fresh()),
+                        $folderId
+                    );
+
+                    if ($fileId) {
+                        $car->update(['purchase_receipt_file_id' => $fileId]);
+                        $receiptUploaded = true;
+                    }
+                }
+            }
+        });
 
         return redirect()->route('purchases.show', $purchase)
-            ->with('success', 'Purchase updated successfully.');
+            ->with('success', $receiptUploaded
+                ? 'Purchase updated successfully and a new receipt was uploaded to Google Drive.'
+                : 'Purchase updated successfully. Updated receipt upload was skipped or failed; check the car Google Drive folder.');
     }
 
     public function destroy(Purchase $purchase)

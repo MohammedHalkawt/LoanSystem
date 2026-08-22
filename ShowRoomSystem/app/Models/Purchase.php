@@ -20,6 +20,7 @@ class Purchase extends Model
         'upfront_payment',
         'months',
         'purchase_date',
+        'notes',
     ];
 
     protected $casts = [

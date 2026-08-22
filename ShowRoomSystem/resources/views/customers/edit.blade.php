@@ -22,12 +22,6 @@
                 @error('phone_number') <p style="color: #e53e3e; font-size:0.8rem;">{{ $message }}</p> @enderror
             </div>
 
-            <div class="form-group">
-                <label for="folder_path">Folder Path (for files)</label>
-                <input type="text" name="folder_path" id="folder_path" class="form-control" value="{{ old('folder_path', $customer->folder_path) }}">
-                @error('folder_path') <p style="color: #e53e3e; font-size:0.8rem;">{{ $message }}</p> @enderror
-            </div>
-
             <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                 <button type="submit" class="btn btn-primary">Update Customer</button>
                 <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline">Cancel</a>

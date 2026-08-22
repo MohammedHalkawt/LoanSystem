@@ -15,9 +15,7 @@ class GoogleDriveService
     public function __construct()
     {
         try {
-            $client = new Client();
-            $client->setAuthConfig(storage_path(env('GOOGLE_DRIVE_CREDENTIALS_PATH')));
-            $client->addScope(Drive::DRIVE);
+            $client = $this->buildClient();
 
             $this->drive = new Drive($client);
             $this->baseFolderId = env('GOOGLE_DRIVE_FOLDER_ID');
@@ -58,6 +56,36 @@ class GoogleDriveService
             Log::warning('Google Drive folder creation failed: ' . $e->getMessage());
             return null;
         }
+    }
+
+    private function buildClient()
+    {
+        $client = new Client();
+        $client->addScope(Drive::DRIVE);
+
+        if (env('GOOGLE_DRIVE_AUTH_MODE') === 'oauth') {
+            $client->setAuthConfig(storage_path(env('GOOGLE_DRIVE_OAUTH_CREDENTIALS_PATH')));
+            $client->setAccessType('offline');
+            $client->setPrompt('consent');
+
+            $refreshToken = env('GOOGLE_DRIVE_REFRESH_TOKEN');
+
+            if (!$refreshToken) {
+                throw new \RuntimeException('GOOGLE_DRIVE_REFRESH_TOKEN is missing.');
+            }
+
+            $token = $client->fetchAccessTokenWithRefreshToken($refreshToken);
+
+            if (isset($token['error'])) {
+                throw new \RuntimeException('Google OAuth refresh failed: ' . ($token['error_description'] ?? $token['error']));
+            }
+
+            return $client;
+        }
+
+        $client->setAuthConfig(storage_path(env('GOOGLE_DRIVE_CREDENTIALS_PATH')));
+
+        return $client;
     }
 
     public function findOrCreateFolder($folderName, $parentFolderId)

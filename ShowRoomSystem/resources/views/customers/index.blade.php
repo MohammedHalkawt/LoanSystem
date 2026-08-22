@@ -26,23 +26,20 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
                         <th>Phone</th>
                         <th>Folder Path</th>
                         <th>Created</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($customers as $customer)
-                        <tr>
-                            <td>#{{ $customer->id }}</td>
+                        <tr onclick="window.location='{{ route('customers.show', $customer) }}'" style="cursor:pointer;">
                             <td>{{ $customer->name }}</td>
                             <td>{{ $customer->phone_number ?? '—' }}</td>
                             <td>
                                 @if($customer->folder_path)
-                                    <a href="https://drive.google.com/drive/folders/{{ $customer->folder_path }}" target="_blank" style="color: #0d6efd; text-decoration: none; font-size:0.85rem;">
+                                    <a href="https://drive.google.com/drive/folders/{{ $customer->folder_path }}" target="_blank" onclick="event.stopPropagation();" style="color: #0d6efd; text-decoration: none; font-size:0.85rem;">
                                         Open Folder
                                     </a>
                                 @else
@@ -50,12 +47,6 @@
                                 @endif
                             </td>
                             <td>{{ $customer->created_at->format('M d, Y') }}</td>
-                            <td>
-                                <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; margin-right:0.3rem;">View</a>
-                                @if(session('user_role') === 'editor')
-                                    <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline" style="padding:0.3rem 0.8rem;">Edit</a>
-                                @endif
-                            </td>
                         </tr>
                     @endforeach
                 </tbody>

@@ -111,10 +111,9 @@ class CustomerController extends Controller
         $request->validate([
             'name'          => 'required|string|max:255',
             'phone_number'  => 'nullable|string|max:20',
-            'folder_path'   => 'nullable|string|max:255',
         ]);
 
-        $customer->update($request->only('name', 'phone_number', 'folder_path'));
+        $customer->update($request->only('name', 'phone_number'));
 
         return redirect()->route('customers.show', $customer)
                          ->with('success', 'Customer updated successfully.');

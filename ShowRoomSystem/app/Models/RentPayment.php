@@ -18,6 +18,7 @@ class RentPayment extends Model
         'covered_month_to',
         'months_count',
         'payment_date',
+        'notes',
         'receipt_path',
         'receipt_drive_file_id',
     ];

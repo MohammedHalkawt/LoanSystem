@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
 @section('title', 'Rent Details')
-@section('page', 'Rent #' . $rent->id)
+@section('page', 'Rent Details')
 
 @section('content')
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
-        <h2 style="font-size: 1.5rem; font-weight: 600;">Rent Payment #{{ $rent->id }}</h2>
+        <h2 style="font-size: 1.5rem; font-weight: 600;">Rent Payment Details</h2>
         <a href="{{ route('rents.index') }}" class="btn btn-outline">Back</a>
     </div>
 
@@ -28,10 +28,6 @@
             <p style="font-size:1.1rem;">${{ number_format($rent->amount, 2) }}</p>
         </div>
         <div>
-            <p style="font-size:0.8rem; color:#6b7280; margin-bottom:0.2rem;">Covered Months</p>
-            <p style="font-size:1.1rem;">{{ $rent->covered_month_from }} to {{ $rent->covered_month_to }} ({{ $rent->months_count }})</p>
-        </div>
-        <div>
             <p style="font-size:0.8rem; color:#6b7280; margin-bottom:0.2rem;">Payment Date</p>
             <p style="font-size:1.1rem;">{{ $rent->payment_date->format('F d, Y') }}</p>
         </div>
@@ -42,6 +38,10 @@
             @else
                 <p style="font-size:1.1rem; color:#6b7280;">Not uploaded</p>
             @endif
+        </div>
+        <div style="grid-column: 1 / -1;">
+            <p style="font-size:0.8rem; color:#6b7280; margin-bottom:0.2rem;">Notes</p>
+            <p style="font-size:1.1rem; white-space:pre-wrap;">{{ $rent->notes ?: 'No notes.' }}</p>
         </div>
     </div>
 </div>

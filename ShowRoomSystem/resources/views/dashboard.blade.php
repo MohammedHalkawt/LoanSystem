@@ -21,6 +21,10 @@
                 <div class="action-title">Record Rent</div>
                 <div class="action-desc">Log a rent payment</div>
             </a>
+            <button type="button" class="action-btn" onclick="openReportModal()">
+                <div class="action-title">Monthly Report</div>
+                <div class="action-desc">Print a monthly summary</div>
+            </button>
         </div>
     </div>
 @elseif(session('user_role') === 'viewer')
@@ -39,9 +43,56 @@
                 <div class="action-title">View Rents</div>
                 <div class="action-desc">Browse all rent payments</div>
             </a>
+            <button type="button" class="action-btn" onclick="openReportModal()">
+                <div class="action-title">Monthly Report</div>
+                <div class="action-desc">Print a monthly summary</div>
+            </button>
         </div>
     </div>
 @endif
+
+    <div id="reportModal" class="modal-backdrop" style="display:none;">
+        <div class="modal-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.25rem;">
+                <div>
+                    <h3 style="font-size:1.2rem; font-weight:700;">Monthly Report</h3>
+                    <p style="color:#6b7280; font-size:0.9rem;">Choose one month or a range.</p>
+                </div>
+                <button type="button" class="icon-close" onclick="closeReportModal()">×</button>
+            </div>
+
+            <form method="GET" action="{{ route('reports.monthly') }}" target="_blank">
+                <div class="form-group">
+                    <label for="start_month">From Month</label>
+                    <input type="month" name="start_month" id="start_month" class="form-control" value="{{ date('Y-m') }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="end_month">To Month</label>
+                    <input type="month" name="end_month" id="end_month" class="form-control" value="{{ date('Y-m') }}">
+                </div>
+                <div style="display:flex; gap:0.75rem;">
+                    <button type="submit" class="btn btn-primary">Print Report</button>
+                    <button type="button" class="btn btn-outline" onclick="closeReportModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openReportModal() {
+            document.getElementById('reportModal').style.display = 'flex';
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        document.getElementById('reportModal').addEventListener('click', function (event) {
+            if (event.target === this) {
+                closeReportModal();
+            }
+        });
+    </script>
 
     {{-- Recent purchases --}}
     <div class="card" style="margin-top: 2rem;">

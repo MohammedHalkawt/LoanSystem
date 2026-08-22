@@ -29,7 +29,6 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Customer</th>
                     <th>Car</th>
                     <th>Model Year</th>
@@ -37,14 +36,13 @@
                     <th>Upfront</th>
                     <th>Balance</th>
                     <th>Purchase Date</th>
+                    <th>Notes</th>
                     <th>Receipt</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($purchases as $purchase)
-                    <tr>
-                        <td>{{ $purchase->id }}</td>
+                    <tr onclick="window.location='{{ route('purchases.show', $purchase) }}'" style="cursor:pointer;">
                         <td>{{ $purchase->customer->name ?? 'N/A' }}</td>
                         <td>{{ $purchase->car_name }}</td>
                         <td>{{ $purchase->model_year }}</td>
@@ -52,28 +50,18 @@
                         <td>${{ number_format($purchase->upfront_payment, 2) }}</td>
                         <td>${{ number_format($purchase->overall_price - $purchase->upfront_payment, 2) }}</td>
                         <td>{{ $purchase->purchase_date->format('Y-m-d') }}</td>
+                        <td>{{ $purchase->notes ? \Illuminate\Support\Str::limit($purchase->notes, 42) : '—' }}</td>
                         <td>
                             @if($purchase->car?->purchase_receipt_file_id)
-                                <a href="https://drive.google.com/file/d/{{ $purchase->car->purchase_receipt_file_id }}/view" target="_blank" class="btn btn-outline" style="padding:0.3rem 0.8rem;">Open</a>
+                                <a href="https://drive.google.com/file/d/{{ $purchase->car->purchase_receipt_file_id }}/view" target="_blank" onclick="event.stopPropagation();" class="btn btn-outline" style="padding:0.3rem 0.8rem;">Open</a>
                             @else
                                 <span style="color:#6b7280;">Not uploaded</span>
-                            @endif
-                        </td>
-                        <td>
-                            <a href="{{ route('purchases.show', $purchase) }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; margin-right:0.3rem;">View</a>
-                            @if(session('user_role') === 'editor')
-                                <a href="{{ route('purchases.edit', $purchase) }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; margin-right:0.3rem;">Edit</a>
-                                <form action="{{ route('purchases.destroy', $purchase) }}" method="POST" style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Delete this purchase?')" class="btn btn-outline" style="padding:0.3rem 0.8rem; color: #ef4444; border-color: #ef4444;">Delete</button>
-                                </form>
                             @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" style="text-align: center; padding: 2rem; color: #6b7280;">No purchases found.</td>
+                        <td colspan="9" style="text-align: center; padding: 2rem; color: #6b7280;">No purchases found.</td>
                     </tr>
                 @endforelse
             </tbody>
