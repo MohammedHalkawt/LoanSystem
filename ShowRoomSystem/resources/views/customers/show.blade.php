@@ -17,10 +17,6 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
             <div>
-                <p style="font-size:0.8rem; color:#6b7280; margin-bottom:0.2rem;">Customer ID</p>
-                <p style="font-size:1.2rem; font-weight:600;">#{{ $customer->id }}</p>
-            </div>
-            <div>
                 <p style="font-size:0.8rem; color:#6b7280; margin-bottom:0.2rem;">Phone Number</p>
                 <p style="font-size:1.2rem;">{{ $customer->phone_number ?? '—' }}</p>
             </div>

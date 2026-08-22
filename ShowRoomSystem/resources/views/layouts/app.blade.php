@@ -329,8 +329,8 @@
         .container { max-width: 1280px; margin: 0 auto; padding: 2rem; }
         .card { background: rgba(255,255,255,0.92); border-radius: 8px; padding: 1.8rem; box-shadow: 0 18px 45px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06); }
         .btn { display: inline-block; padding: 0.62rem 1.15rem; border-radius: 999px; font-size: 0.9rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.18s ease; }
-        .btn-primary { background: #0071e3; color: white; }
-        .btn-primary:hover { background: #0077ed; transform: translateY(-1px); }
+        .btn-primary { background: #4d4d4d; color: white; }
+        .btn-primary:hover { background: #181818; transform: translateY(-1px); }
         .btn-outline { background: rgba(255,255,255,0.65); border: 1px solid #d2d2d7; color: #1d1d1f; }
         .btn-outline:hover { background: white; border-color: #a1a1a6; }
         .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }

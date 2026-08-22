@@ -364,4 +364,25 @@ button:hover {
         border-color: #742a2a;
         color: #feb2b2;
     }
+    .btn-primary {
+    background-color: #000000;
+    border-color: #000000;
+    color: #ffffff;
+    }
+
+    .btn-primary:hover {
+        background-color: #1a1a1a;
+        border-color: #1a1a1a;
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 1px solid #000000;
+        color: #000000;
+    }
+
+    .btn-outline:hover {
+        background-color: #000000;
+        color: #ffffff;
+    }
 }
